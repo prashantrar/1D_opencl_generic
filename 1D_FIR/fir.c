@@ -144,7 +144,7 @@ int main(int argc, char** argv)
 
 	// Connect to a compute device
 	//
-	int gpu = 1;
+	int gpu = 0;
 	err = clGetDeviceIDs(platform_id, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
 	if (err != CL_SUCCESS)
 	{
