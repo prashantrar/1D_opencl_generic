@@ -112,6 +112,7 @@ int main(int argc, char** argv)
     
     cl_mem input;                       // device memory used for the input array
     cl_mem output;                      // device memory used for the output array
+    cl_event event;
     
     // Fill our data set with random float values
     //
@@ -149,7 +150,7 @@ int main(int argc, char** argv)
 
     // Create a command commands
     //
-    commands = clCreateCommandQueue(context, device_id, 0, &err);
+    commands = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, &err);
     if (!commands)
     {
         printf("Error: Failed to create a command commands!\n");
@@ -235,7 +236,7 @@ int main(int argc, char** argv)
     // using the maximum number of work group items for this device
     //
     global = count;
-    err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
+    err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, NULL, 0, NULL, &event);
     if (err)
     {
         printf("Error: Failed to execute kernel!-%d\n",err);
@@ -244,7 +245,14 @@ int main(int argc, char** argv)
 
     // Wait for the command commands to get serviced before reading back results
     //
+    clWaitForEvents(1, &event);
     clFinish(commands);
+    cl_ulong time_start, time_end;
+    double total_time;
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    total_time = time_end - time_start;
+    printf("cl:main timing:opencl clEnqueueNDRangeKernel %0.3f us\n", total_time / 1000.0);
 
     // Read back the results from the device to verify the output
     //
